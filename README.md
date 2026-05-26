@@ -3,6 +3,11 @@
 
 A powerful core for SkyBlock servers
 
+## Compatibility
+
+This release is updated and tested for **PocketMine-MP 5.43.1**.
+
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your server.

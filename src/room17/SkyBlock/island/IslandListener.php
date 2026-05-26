@@ -23,6 +23,7 @@ use pocketmine\event\world\ChunkLoadEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerBedEnterEvent;
 use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\player\chat\LegacyRawChatFormatter;
@@ -135,14 +136,14 @@ class IslandListener implements Listener {
     /**
      * Prevent players from sending blocked commands inside islands
      */
-    public function onCommand(PlayerChatEvent $event): void {
+    public function onCommand(PlayerCommandPreprocessEvent $event): void {
         $session = SessionLocator::getSession($event->getPlayer());
         $message = $event->getMessage();
-        if($session->getIslandByWorld() == null or $message[0] != "/") {
+        if($session->getIslandByWorld() == null or $message === "" or $message[0] != "/") {
             return;
         }
-        $command = strtolower(substr($message, 1));
-        if(in_array($command, $this->plugin->getSettings()->getBlockedCommands())) {
+        $command = strtolower(explode(" ", substr($message, 1), 2)[0]);
+        if(in_array($command, $this->plugin->getSettings()->getBlockedCommands(), true)) {
             $session->sendTranslatedMessage(new MessageContainer("BLOCKED_COMMAND"));
             $event->cancel();
         }
@@ -166,7 +167,7 @@ class IslandListener implements Listener {
 
         if($event instanceof EntityDamageByEntityEvent) {
             $this->onDamageByEntityInIsland($island, $event);
-        } elseif($event->getCause() == EntityDamageByEntityEvent::CAUSE_VOID and $this->plugin->getSettings()->isVoidDamageEnabled()) {
+        } elseif($event->getCause() === EntityDamageEvent::CAUSE_VOID and !$this->plugin->getSettings()->isVoidDamageEnabled()) {
             $entity->teleport($island->getSpawnLocation());
             $event->cancel();
         }
